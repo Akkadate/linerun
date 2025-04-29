@@ -1,0 +1,67 @@
+running-app/
+├── running-app-frontend/    # React LIFF App (port 3250)
+│   ├── public/
+│   │   └── index.html
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Auth/
+│   │   │   │   ├── Login.js
+│   │   │   │   └── Register.js
+│   │   │   ├── Running/
+│   │   │   │   ├── RunningForm.js
+│   │   │   │   └── RunningStats.js
+│   │   │   ├── Leaderboard/
+│   │   │   │   └── LeaderboardTable.js
+│   │   │   ├── Sharing/
+│   │   │   │   └── ShareCard.js
+│   │   │   └── common/
+│   │   │       ├── Header.js
+│   │   │       ├── Footer.js
+│   │   │       └── Loading.js
+│   │   ├── pages/
+│   │   │   ├── HomePage.js
+│   │   │   ├── RegisterPage.js
+│   │   │   ├── RunningFormPage.js
+│   │   │   ├── StatsPage.js
+│   │   │   └── LeaderboardPage.js
+│   │   ├── services/
+│   │   │   ├── api.js
+│   │   │   ├── auth.js
+│   │   │   └── liff.js
+│   │   ├── utils/
+│   │   │   ├── dateUtils.js
+│   │   │   └── validationUtils.js
+│   │   ├── contexts/
+│   │   │   └── AuthContext.js
+│   │   ├── App.js
+│   │   ├── index.js
+│   │   └── config.js
+│   ├── package.json
+│   └── .env
+│
+└── running-app-backend/     # Node.js/Express API (port 4800)
+    ├── src/
+    │   ├── controllers/
+    │   │   ├── authController.js
+    │   │   ├── runningController.js
+    │   │   └── leaderboardController.js
+    │   ├── models/
+    │   │   ├── User.js
+    │   │   └── RunningRecord.js
+    │   ├── routes/
+    │   │   ├── authRoutes.js
+    │   │   ├── runningRoutes.js
+    │   │   └── leaderboardRoutes.js
+    │   ├── middleware/
+    │   │   ├── auth.js
+    │   │   └── validation.js
+    │   ├── services/
+    │   │   ├── supabaseService.js
+    │   │   └── lineService.js
+    │   ├── utils/
+    │   │   └── responseUtils.js
+    │   ├── config/
+    │   │   └── supabase.js
+    │   └── app.js
+    ├── package.json
+    └── .env
