@@ -23,4 +23,21 @@ try {
   console.error('Supabase connection error:', err);
 }
 
+// ใน src/config/supabase.js หลังจากสร้าง supabase client
+console.log('Supabase URL:', supabaseUrl);
+console.log('Testing Supabase connection...');
+
+// ทดสอบการเชื่อมต่อ
+supabase.from('users').select('count(*)', { count: 'exact' })
+  .then(({ data, error, count }) => {
+    if (error) {
+      console.error('Supabase connection test failed:', error);
+    } else {
+      console.log('Supabase connection successful, user count:', count);
+    }
+  })
+  .catch(err => {
+    console.error('Supabase test query error:', err);
+  });
+
 export default supabase;
