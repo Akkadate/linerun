@@ -57,29 +57,25 @@ export const useLiff = () => {
     setProfile(null);
   };
 
-  // Get ID Token for API authentication
-  const getIdToken = () => {
-    if (!liffObject || !isLoggedIn) {
-      console.error('Cannot get ID token - user not logged in or LIFF not initialized');
+  // แก้ไขฟังก์ชัน getIdToken ในไฟล์ src/services/liff.js
+const getIdToken = () => {
+  if (!liffObject || !isLoggedIn) {
+    console.error('Cannot get ID token - user not logged in or LIFF not initialized');
+    return null;
+  }
+  try {
+    const token = liffObject.getIDToken();
+    if (!token) {
+      console.error('ID token is undefined or empty');
       return null;
     }
-    const token = liffObject.getIDToken();
     console.log('Got ID token:', token ? `${token.substring(0, 10)}...` : 'No token');
     return token;
-  };
-
-  // Get user profile
-  const getProfile = async () => {
-    if (!liffObject || !isLoggedIn) return null;
-    try {
-      const userProfile = await liffObject.getProfile();
-      setProfile(userProfile);
-      return userProfile;
-    } catch (error) {
-      console.error('Failed to get user profile', error);
-      return null;
-    }
-  };
+  } catch (error) {
+    console.error('Error getting ID token:', error);
+    return null;
+  }
+};
 
   // Share message to LINE
   const shareMessage = async (text) => {
