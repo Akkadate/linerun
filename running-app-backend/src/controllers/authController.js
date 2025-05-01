@@ -7,39 +7,53 @@ import { successResponse, errorResponse, serverErrorResponse } from '../utils/re
 export const login = async (req, res) => {
   try {
     const { lineIdToken } = req.body;
+    console.log('Login attempt with token:', lineIdToken ? 'Token provided' : 'No token');
     
     if (!lineIdToken) {
       return errorResponse(res, 'Token ไม่ถูกต้อง', 400);
     }
     
     // Verify LINE ID token
-    const lineUserData = await verifyIdToken(lineIdToken);
-    
-    if (!lineUserData || !lineUserData.sub) {
-      return errorResponse(res, 'ไม่สามารถยืนยันตัวตนได้', 401);
+    try {
+      const lineUserData = await verifyIdToken(lineIdToken);
+      
+      if (!lineUserData || !lineUserData.sub) {
+        return errorResponse(res, 'ไม่สามารถยืนยันตัวตนได้', 401);
+      }
+      
+      const lineId = lineUserData.sub;
+      console.log('LINE ID verified:', lineId);
+      
+      // ตรวจสอบว่ามีผู้ใช้ในระบบหรือไม่
+      let user = await User.getByLineId(lineId);
+      console.log('User found in database:', user ? 'Yes' : 'No');
+      
+      // ถ้าไม่มีผู้ใช้ ให้สร้างใหม่
+      if (!user) {
+        console.log('Creating new user with data:', {
+          line_id: lineId,
+          display_name: lineUserData.name || 'LINE User',
+          profile_picture: lineUserData.picture || null
+        });
+        
+        user = await User.create({
+          line_id: lineId,
+          display_name: lineUserData.name || 'LINE User',
+          profile_picture: lineUserData.picture || null
+        });
+      }
+      
+      // สร้าง JWT token
+      const token = createJwtToken(user.id);
+      
+      return successResponse(res, { 
+        user, 
+        token 
+      }, 'เข้าสู่ระบบสำเร็จ');
+    } catch (lineError) {
+      console.error('LINE verification error:', lineError);
+      return errorResponse(res, 'การยืนยันตัวตนกับ LINE ล้มเหลว', 401);
     }
-    
-    const lineId = lineUserData.sub;
-    
-    // Check if user exists
-    let user = await User.getByLineId(lineId);
-    
-    // If user doesn't exist, create a new one
-    if (!user) {
-      user = await User.create({
-        line_id: lineId,
-        display_name: lineUserData.name || 'LINE User',
-        profile_picture: lineUserData.picture || null
-      });
-    }
-    
-    // Create JWT token
-    const token = createJwtToken(user.id);
-    
-    return successResponse(res, { 
-      user, 
-      token 
-    }, 'เข้าสู่ระบบสำเร็จ');
   } catch (error) {
     console.error('Login error:', error);
     return serverErrorResponse(res, error);
