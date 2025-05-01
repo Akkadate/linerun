@@ -9,18 +9,24 @@ export const useLiff = () => {
   const [profile, setProfile] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Initialize LIFF
+   // Initialize LIFF
   useEffect(() => {
     const initializeLiff = async () => {
       try {
+        console.log('Initializing LIFF with ID:', config.liffId);
         await liff.init({ liffId: config.liffId });
+        console.log('LIFF initialized successfully');
         setLiffObject(liff);
         
         // Check if user is logged in
         if (liff.isLoggedIn()) {
+          console.log('User is logged in to LINE');
           setIsLoggedIn(true);
           const userProfile = await liff.getProfile();
+          console.log('Got LINE profile:', userProfile);
           setProfile(userProfile);
+        } else {
+          console.log('User is not logged in to LINE');
         }
       } catch (error) {
         console.error('LIFF initialization failed', error);
@@ -32,10 +38,16 @@ export const useLiff = () => {
   }, []);
 
   // Login function
+  // Login function
   const login = () => {
-    if (!liffObject) return;
+    console.log('Attempting LINE login...');
+    if (!liffObject) {
+      console.error('LIFF is not initialized yet');
+      return;
+    }
     liffObject.login();
   };
+  
 
   // Logout function
   const logout = () => {
@@ -47,8 +59,13 @@ export const useLiff = () => {
 
   // Get ID Token for API authentication
   const getIdToken = () => {
-    if (!liffObject || !isLoggedIn) return null;
-    return liffObject.getIDToken();
+    if (!liffObject || !isLoggedIn) {
+      console.error('Cannot get ID token - user not logged in or LIFF not initialized');
+      return null;
+    }
+    const token = liffObject.getIDToken();
+    console.log('Got ID token:', token ? `${token.substring(0, 10)}...` : 'No token');
+    return token;
   };
 
   // Get user profile
