@@ -12,6 +12,13 @@ import uploadRoutes from './routes/uploadRoutes.js';
 // Load environment variables
 dotenv.config();
 
+// เพิ่มโค้ดนี้ในไฟล์ app.js หลังจาก dotenv.config();
+console.log('Environment variables:');
+console.log('LINE_CHANNEL_ID:', process.env.LINE_CHANNEL_ID);
+console.log('LINE_CHANNEL_SECRET:', process.env.LINE_CHANNEL_SECRET ? 'Set (not showing for security)' : 'Not set');
+console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'Set (not showing for security)' : 'Not set');
+console.log('CORS_ORIGIN:', process.env.CORS_ORIGIN);
+
 // Create Express app
 const app = express();
 const PORT = process.env.PORT || 4800;
