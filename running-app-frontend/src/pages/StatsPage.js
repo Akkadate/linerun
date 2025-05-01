@@ -367,7 +367,24 @@ ${userRank ? `อันดับประจำเดือนนี้: อั�
       }
     ]
   };
-  
+
+// เพิ่มปุ่มทดสอบใน StatsPage.js
+const testApi = async () => {
+  try {
+    console.log('Testing API connection...');
+    const url = `${config.apiUrl}/health`;
+    console.log('Health URL:', url);
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    console.log('Health API response:', data);
+    alert('API connection successful');
+  } catch (error) {
+    console.error('API test failed:', error);
+    alert('API connection failed: ' + error.message);
+  }
+};
+
   const weeklyChartOptions = {
     responsive: true,
     plugins: {
@@ -458,7 +475,14 @@ ${userRank ? `อันดับประจำเดือนนี้: อั�
               <p style={{ textAlign: 'center' }}>ยังไม่มีบันทึกการวิ่ง</p>
             )}
           </RecordsTable>
-          
+
+              
+          // แล้วเพิ่มปุ่มในหน้าจอสำหรับทดสอบ
+<button onClick={testApi} style={{ marginTop: '10px' }}>
+  ทดสอบการเชื่อมต่อ API
+</button>
+
+    
           <ActionButton to="/submit">บันทึกการวิ่งใหม่</ActionButton>
           <ShareButton onClick={handleShare}>แชร์สถิติไปยัง LINE</ShareButton>
         </>
