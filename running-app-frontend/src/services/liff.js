@@ -9,7 +9,7 @@ export const useLiff = () => {
   const [profile, setProfile] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-   // Initialize LIFF
+  // Initialize LIFF
   useEffect(() => {
     const initializeLiff = async () => {
       try {
@@ -38,7 +38,6 @@ export const useLiff = () => {
   }, []);
 
   // Login function
-  // Login function
   const login = () => {
     console.log('Attempting LINE login...');
     if (!liffObject) {
@@ -48,7 +47,6 @@ export const useLiff = () => {
     liffObject.login();
   };
   
-
   // Logout function
   const logout = () => {
     if (!liffObject) return;
@@ -57,31 +55,41 @@ export const useLiff = () => {
     setProfile(null);
   };
 
-
-// แก้ไขฟังก์ชัน getIdToken ในไฟล์ src/services/liff.js
-const getIdToken = () => {
-  if (!liffObject || !isLoggedIn) {
-    console.error('Cannot get ID token - user not logged in or LIFF not initialized');
-    return null;
-  }
-  
-  try {
-    // ขอ token จาก LIFF
-    const token = liffObject.getIDToken();
-    
-    // ตรวจสอบว่า token มีค่าหรือไม่
-    if (!token) {
-      console.error('ID token is undefined or empty');
+  // Get ID Token for API authentication
+  const getIdToken = () => {
+    if (!liffObject || !isLoggedIn) {
+      console.error('Cannot get ID token - user not logged in or LIFF not initialized');
       return null;
     }
     
-    // ไม่ต้อง log ทุกครั้ง หรือ log เฉพาะครั้งแรก
-    return token;
-  } catch (error) {
-    console.error('Error getting ID token:', error);
-    return null;
-  }
-};
+    try {
+      const token = liffObject.getIDToken();
+      
+      if (!token) {
+        console.error('ID token is undefined or empty');
+        return null;
+      }
+      
+      // ไม่ log ทุกครั้ง ป้องกันการแสดงซ้ำๆ
+      return token;
+    } catch (error) {
+      console.error('Error getting ID token:', error);
+      return null;
+    }
+  };
+
+  // Get user profile - ฟังก์ชันนี้หายไปจากโค้ดเดิม
+  const getProfile = async () => {
+    if (!liffObject || !isLoggedIn) return null;
+    try {
+      const userProfile = await liffObject.getProfile();
+      setProfile(userProfile);
+      return userProfile;
+    } catch (error) {
+      console.error('Failed to get user profile', error);
+      return null;
+    }
+  };
 
   // Share message to LINE
   const shareMessage = async (text) => {
@@ -112,7 +120,7 @@ const getIdToken = () => {
     login,
     logout,
     getIdToken,
-    getProfile,
+    getProfile,  // เพิ่มฟังก์ชันนี้เข้าไปในรายการ return
     shareMessage
   };
 };
