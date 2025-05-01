@@ -148,26 +148,35 @@ const handleLogin = useCallback(async (idToken) => {
     }
   };
 
-  // Check if token exists on app load
-  useEffect(() => {
-    const loadUserFromToken = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          setAuthToken(token);
-          const user = await authAPI.getUserProfile();
-          setCurrentUser(user);
-        } catch (error) {
-          console.error('Token invalid:', error);
-          localStorage.removeItem('token');
-          setAuthToken(null);
-        }
-      }
+  // แก้ไขส่วน useEffect ของการโหลด token จาก localStorage
+useEffect(() => {
+  const loadUserFromToken = async () => {
+    // ไม่เรียกใช้ถ้า user มีค่าแล้ว (อาจได้รับจาก LIFF)
+    if (currentUser) {
+      console.log('User already set, skipping token load');
       setLoading(false);
-    };
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    console.log('Loading token from localStorage:', token ? 'token exists' : 'no token');
     
-    loadUserFromToken();
-  }, []);
+    if (token && token !== 'undefined') {
+      try {
+        setAuthToken(token);
+        const user = await authAPI.getUserProfile();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Token invalid or user profile fetch failed:', error);
+        localStorage.removeItem('token');
+        setAuthToken(null);
+      }
+    }
+    setLoading(false);
+  };
+  
+  loadUserFromToken();
+}, [currentUser]);
 
   const value = {
     currentUser,
