@@ -13,50 +13,67 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const { liffObject, isLoggedIn, profile, login: liffLogin, getIdToken } = useLiff();
 
-  // Handle login with LINE - เลื่อนฟังก์ชันนี้ขึ้นมาก่อน useEffect
-  const handleLogin = async (idToken) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      if (!idToken) {
-        console.error('No ID token provided');
-        setError('ไม่พบ ID token กรุณาลองใหม่อีกครั้ง');
-        return null;
-      }
-      
-      // Send ID token to backend
-      console.log('Sending login request to backend with token');
-      const response = await authAPI.login(idToken);
-      
-      if (!response || !response.token) {
-        console.error('Invalid response from server:', response);
-        setError('การเข้าสู่ระบบล้มเหลว ไม่ได้รับ token จากเซิร์ฟเวอร์');
-        return null;
-      }
-      
-      const { user, token } = response;
-      
-      console.log('Login successful, setting token and user');
-      
-      // Set token for API calls
-      setAuthToken(token);
-      
-      // Save user data
-      setCurrentUser(user);
-      
-      // Store token in local storage
-      localStorage.setItem('token', token);
-      
-      return user;
-    } catch (error) {
-      console.error('Login failed:', error);
-      setError(error.message || 'การเข้าสู่ระบบล้มเหลว');
+ // แก้ไขฟังก์ชัน handleLogin ในไฟล์ src/contexts/AuthContext.js
+const handleLogin = async (idToken) => {
+  try {
+    setLoading(true);
+    setError(null);
+    
+    if (!idToken) {
+      console.error('No ID token provided');
+      setError('ไม่พบ ID token กรุณาลองใหม่อีกครั้ง');
       return null;
-    } finally {
-      setLoading(false);
     }
-  };
+    
+    // ส่ง ID token ไปยัง backend
+    console.log('Sending login request to backend with token');
+    const response = await authAPI.login(idToken);
+    
+    console.log('Login response received:', response);
+    
+    // ตรวจสอบโครงสร้างของ response
+    let user, token;
+    
+    if (response.data && response.data.user && response.data.token) {
+      // กรณีที่ response มีโครงสร้าง { data: { user, token } }
+      user = response.data.user;
+      token = response.data.token;
+    } else if (response.user && response.token) {
+      // กรณีที่ response มีโครงสร้าง { user, token }
+      user = response.user;
+      token = response.token;
+    } else {
+      console.error('Unexpected response structure:', response);
+      setError('โครงสร้างข้อมูลจากเซิร์ฟเวอร์ไม่ถูกต้อง');
+      return null;
+    }
+    
+    if (!token) {
+      console.error('No token in response:', response);
+      setError('ไม่ได้รับ token จากเซิร์ฟเวอร์');
+      return null;
+    }
+    
+    console.log('Login successful, setting token and user');
+    
+    // ตั้งค่า token สำหรับการเรียก API
+    setAuthToken(token);
+    
+    // บันทึกข้อมูลผู้ใช้
+    setCurrentUser(user);
+    
+    // บันทึก token ใน localStorage
+    localStorage.setItem('token', token);
+    
+    return user;
+  } catch (error) {
+    console.error('Login failed:', error);
+    setError(error.message || 'การเข้าสู่ระบบล้มเหลว');
+    return null;
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Initialize user auth state when LIFF is ready
   useEffect(() => {
