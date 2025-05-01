@@ -128,14 +128,6 @@ export const runningAPI = {
     }
   },
 
-  // เพิ่มใน api.js เพื่อ debug request/response
-apiClient.interceptors.request.use(request => {
-  console.log('Starting Request:', request.method, request.url);
-  return request;
-}, error => {
-  console.error('Request Error:', error);
-  return Promise.reject(error);
-});
 
 apiClient.interceptors.response.use(response => {
   console.log('Response:', response.status, response.config.url);
