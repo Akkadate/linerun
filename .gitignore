@@ -1,1 +1,4 @@
-*node_modules/*
+
+# Ignore node_modules in both frontend and backend
+/running-app-frontend/node_modules/
+/running-app-backend/node_modules/
