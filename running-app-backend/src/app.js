@@ -1,4 +1,4 @@
-// src/app.js
+// src/app.js - updated CORS configuration
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -19,11 +19,41 @@ const PORT = process.env.PORT || 4800;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Updated CORS configuration to support both HTTP and HTTPS
+const allowedOrigins = [
+  process.env.CORS_ORIGIN || 'http://localhost:3250',
+  'https://run.devapp.cc',
+  'https://liff.line.me'  // Allow LINE LIFF
+];
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3250',
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
-app.use(helmet());
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", 'https://api.line.me', 'https://*.supabase.co'],
+      imgSrc: ["'self'", 'data:', 'https://*.line-scdn.net', 'https://*.supabase.co'],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://static.line-scdn.net'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      upgradeInsecureRequests: []
+    }
+  }
+}));
 app.use(morgan('dev'));
 
 // Routes
