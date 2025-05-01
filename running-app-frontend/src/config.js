@@ -6,4 +6,5 @@ const config = {
   supabaseAnonKey: process.env.REACT_APP_SUPABASE_ANON_KEY,
 };
 
+console.log('API URL:', config.apiUrl);
 export default config;
