@@ -187,32 +187,40 @@ const StatsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch user stats
-        const statsData = await runningAPI.getUserStats();
-        setStats(statsData);
-        
-        // Fetch running records
-        const recordsData = await runningAPI.getRunningRecords({ limit: 10 });
-        setRecords(recordsData.records);
-        
-        // Fetch user rank
-        const rankData = await leaderboardAPI.getUserRank('monthly');
-        setUserRank(rankData);
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-        setError('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, []);
+ // เพิ่มใน useEffect ของ StatsPage.js
+useEffect(() => {
+  const fetchData = async () => {
+    console.log('Attempting to fetch stats data...');
+    try {
+      setLoading(true);
+      
+      // Fetch user stats
+      console.log('Fetching user stats...');
+      const statsData = await runningAPI.getUserStats();
+      console.log('Stats data received:', statsData);
+      setStats(statsData);
+      
+      // Fetch running records
+      console.log('Fetching running records...');
+      const recordsData = await runningAPI.getRunningRecords({ limit: 10 });
+      console.log('Records data received:', recordsData);
+      setRecords(recordsData.records);
+      
+      // Fetch user rank
+      console.log('Fetching user rank...');
+      const rankData = await leaderboardAPI.getUserRank('monthly');
+      console.log('Rank data received:', rankData);
+      setUserRank(rankData);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      setError('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  fetchData();
+}, []);
   
   const handleShare = async () => {
     if (!stats) return;
