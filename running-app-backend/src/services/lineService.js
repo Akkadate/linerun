@@ -3,13 +3,13 @@
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 
-// Verify LINE ID token
+// src/services/lineService.js
 export const verifyIdToken = async (idToken) => {
   try {
-    console.log('Verifying LINE ID token...');
-    console.log('Using Channel ID:', process.env.LINE_CHANNEL_ID);
+    console.log('Debug: verifyIdToken called with token:', idToken ? `${idToken.substring(0, 10)}...` : 'null');
+    console.log('Debug: LINE_CHANNEL_ID:', process.env.LINE_CHANNEL_ID);
+    console.log('Debug: LINE_CHANNEL_SECRET:', process.env.LINE_CHANNEL_SECRET);
     
-    // Send request to LINE API to verify token
     const response = await axios.post('https://api.line.me/oauth2/v2.1/verify', null, {
       params: {
         id_token: idToken,
@@ -17,15 +17,12 @@ export const verifyIdToken = async (idToken) => {
       }
     });
     
-    // Return user info from verified token
-    console.log('LINE token verified successfully. User data:', response.data);
+    console.log('Debug: LINE API response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error verifying LINE ID token:', error.response?.data || error.message);
-    console.error('Request details:', {
-      idToken: idToken ? `${idToken.substring(0, 10)}...` : 'No token',
-      channelId: process.env.LINE_CHANNEL_ID
-    });
+    console.error('Debug: Error details:', error.response?.data || error.message);
+    console.error('Debug: Error status:', error.response?.status);
+    console.error('Debug: Full error:', error);
     throw new Error('Token ไม่ถูกต้องหรือหมดอายุ');
   }
 };
