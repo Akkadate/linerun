@@ -10,6 +10,8 @@ import RegisterPage from './pages/RegisterPage';
 import RunningFormPage from './pages/RunningFormPage';
 import StatsPage from './pages/StatsPage';
 import LeaderboardPage from './pages/LeaderboardPage';
+import ErrorBoundary from './components/common/ErrorBoundary';
+
 import './App.css';
 
 // Protected Route Component
@@ -49,7 +51,9 @@ function App() {
                 path="/stats" 
                 element={
                   <ProtectedRoute>
+                   <ErrorBoundary>
                     <StatsPage />
+                   </ErrorBoundary>
                   </ProtectedRoute>
                 } 
               />
