@@ -9,6 +9,7 @@ export const successResponse = (res, data, message = 'สำเร็จ', statu
   });
 };
 
+
 // Error response
 export const errorResponse = (res, message = 'เกิดข้อผิดพลาด', statusCode = 400) => {
   return res.status(statusCode).json({
