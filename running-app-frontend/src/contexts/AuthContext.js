@@ -13,80 +13,85 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const { liffObject, isLoggedIn, profile, login: liffLogin, getIdToken } = useLiff();
 
-  // ปรับปรุง useEffect ให้เรียกแค่ครั้งเดียวเมื่อ LIFF พร้อม
-useEffect(() => {
-  if (!liffObject) return;
-  
-  const initializeAuth = async () => {
+  // Handle login with LINE - เลื่อนฟังก์ชันนี้ขึ้นมาก่อน useEffect
+  const handleLogin = async (idToken) => {
     try {
-      if (isLoggedIn && profile) {
-        console.log('User is logged in with profile, getting ID token');
-        const idToken = getIdToken();
-        
-        if (idToken) {
-          // Log เพียงครั้งเดียว
-          console.log('Got ID token, logging in to backend');
-          await handleLogin(idToken);
-        } else {
-          console.error('Failed to get ID token');
-        }
+      setLoading(true);
+      setError(null);
+      
+      if (!idToken) {
+        console.error('No ID token provided');
+        setError('ไม่พบ ID token กรุณาลองใหม่อีกครั้ง');
+        return null;
       }
+      
+      // Send ID token to backend
+      console.log('Sending login request to backend with token');
+      const response = await authAPI.login(idToken);
+      
+      if (!response || !response.token) {
+        console.error('Invalid response from server:', response);
+        setError('การเข้าสู่ระบบล้มเหลว ไม่ได้รับ token จากเซิร์ฟเวอร์');
+        return null;
+      }
+      
+      const { user, token } = response;
+      
+      console.log('Login successful, setting token and user');
+      
+      // Set token for API calls
+      setAuthToken(token);
+      
+      // Save user data
+      setCurrentUser(user);
+      
+      // Store token in local storage
+      localStorage.setItem('token', token);
+      
+      return user;
     } catch (error) {
-      console.error('Authentication error:', error);
-      setError(error);
+      console.error('Login failed:', error);
+      setError(error.message || 'การเข้าสู่ระบบล้มเหลว');
+      return null;
     } finally {
       setLoading(false);
     }
   };
 
-  initializeAuth();
-}, [liffObject, isLoggedIn, profile, handleLogin]);
+  // Initialize user auth state when LIFF is ready
+  useEffect(() => {
+    const initializeAuth = async () => {
+      if (!liffObject) return;
+      
+      try {
+        if (isLoggedIn && profile) {
+          console.log('User is logged in with profile, attempting to get ID token');
+          const idToken = getIdToken();
+          if (idToken) {
+            // Login to backend with LINE ID token
+            console.log('Got valid ID token, proceeding with backend login');
+            await handleLogin(idToken);
+          } else {
+            console.error('Failed to get valid ID token');
+            setLoading(false);
+          }
+        } else {
+          console.log('User not logged in or no profile');
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Authentication error:', error);
+        setError(error);
+        setLoading(false);
+      }
+    };
 
- // ใช้ useCallback สำหรับฟังก์ชัน handleLogin เพื่อป้องกันการสร้างฟังก์ชันใหม่ทุกครั้ง
-const handleLogin = useCallback(async (idToken) => {
-  try {
-    setLoading(true);
-    setError(null);
-    
-    if (!idToken) {
-      console.error('No ID token provided');
-      setError('ไม่พบ ID token กรุณาลองใหม่อีกครั้ง');
-      return null;
-    }
-    
-    // Send ID token to backend
-    const response = await authAPI.login(idToken);
-    
-    // Check if response contains token
-    if (!response || !response.token) {
-      console.error('Invalid response from server:', response);
-      setError('การเข้าสู่ระบบล้มเหลว ไม่ได้รับ token จากเซิร์ฟเวอร์');
-      return null;
-    }
-    
-    const { user, token } = response;
-    
-    // Set token for API calls
-    setAuthToken(token);
-    
-    // Save user data
-    setCurrentUser(user);
-    
-    // Store token in local storage
-    localStorage.setItem('token', token);
-    
-    return user;
-  } catch (error) {
-    console.error('Login failed:', error);
-    setError(error.message || 'การเข้าสู่ระบบล้มเหลว');
-    return null;
-  } finally {
-    setLoading(false);
-  }
-}, []);
+    initializeAuth();
+  }, [liffObject, isLoggedIn, profile, getIdToken]);
 
   // Login with LINE
   const login = async () => {
+    console.log('Initiating LINE login process');
     liffLogin();
   };
 
@@ -96,7 +101,15 @@ const handleLogin = useCallback(async (idToken) => {
       setLoading(true);
       setError(null);
       
-      const { user, token } = await authAPI.register(userData);
+      const response = await authAPI.register(userData);
+      
+      if (!response || !response.token) {
+        console.error('Invalid registration response:', response);
+        setError('การลงทะเบียนล้มเหลว ไม่ได้รับ token จากเซิร์ฟเวอร์');
+        return null;
+      }
+      
+      const { user, token } = response;
       
       // Set token for API calls
       setAuthToken(token);
@@ -148,35 +161,41 @@ const handleLogin = useCallback(async (idToken) => {
     }
   };
 
-  // แก้ไขส่วน useEffect ของการโหลด token จาก localStorage
-useEffect(() => {
-  const loadUserFromToken = async () => {
-    // ไม่เรียกใช้ถ้า user มีค่าแล้ว (อาจได้รับจาก LIFF)
+  // Check if token exists on app load - วางไว้ด้านล่าง handleLogin
+  useEffect(() => {
+    // ไม่เรียกใช้ถ้า user มีค่าแล้ว
     if (currentUser) {
-      console.log('User already set, skipping token load');
-      setLoading(false);
+      console.log('User already set, skipping token load from localStorage');
       return;
     }
-
-    const token = localStorage.getItem('token');
-    console.log('Loading token from localStorage:', token ? 'token exists' : 'no token');
     
-    if (token && token !== 'undefined') {
-      try {
-        setAuthToken(token);
-        const user = await authAPI.getUserProfile();
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Token invalid or user profile fetch failed:', error);
-        localStorage.removeItem('token');
-        setAuthToken(null);
+    const loadUserFromToken = async () => {
+      const token = localStorage.getItem('token');
+      console.log('Checking token in localStorage:', token ? 'token exists' : 'no token');
+      
+      if (token && token !== 'undefined') {
+        try {
+          setAuthToken(token);
+          const user = await authAPI.getUserProfile();
+          if (user) {
+            console.log('Successfully loaded user from token');
+            setCurrentUser(user);
+          } else {
+            console.error('No user returned from getUserProfile');
+            localStorage.removeItem('token');
+            setAuthToken(null);
+          }
+        } catch (error) {
+          console.error('Token invalid or user fetch failed:', error);
+          localStorage.removeItem('token');
+          setAuthToken(null);
+        }
       }
-    }
-    setLoading(false);
-  };
-  
-  loadUserFromToken();
-}, [currentUser]);
+      setLoading(false);
+    };
+    
+    loadUserFromToken();
+  }, [currentUser]);
 
   const value = {
     currentUser,
