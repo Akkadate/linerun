@@ -57,19 +57,25 @@ export const useLiff = () => {
     setProfile(null);
   };
 
-  // แก้ไขฟังก์ชัน getIdToken ในไฟล์ src/services/liff.js
+
+// แก้ไขฟังก์ชัน getIdToken ในไฟล์ src/services/liff.js
 const getIdToken = () => {
   if (!liffObject || !isLoggedIn) {
     console.error('Cannot get ID token - user not logged in or LIFF not initialized');
     return null;
   }
+  
   try {
+    // ขอ token จาก LIFF
     const token = liffObject.getIDToken();
+    
+    // ตรวจสอบว่า token มีค่าหรือไม่
     if (!token) {
       console.error('ID token is undefined or empty');
       return null;
     }
-    console.log('Got ID token:', token ? `${token.substring(0, 10)}...` : 'No token');
+    
+    // ไม่ต้อง log ทุกครั้ง หรือ log เฉพาะครั้งแรก
     return token;
   } catch (error) {
     console.error('Error getting ID token:', error);
