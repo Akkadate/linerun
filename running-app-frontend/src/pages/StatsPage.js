@@ -187,34 +187,45 @@ const StatsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
- // เพิ่มใน useEffect ของ StatsPage.js
+// ปรับปรุง useEffect ใน StatsPage.js
 useEffect(() => {
+  console.log("StatsPage mounted, starting to fetch data");
+  
   const fetchData = async () => {
-    console.log('Attempting to fetch stats data...');
     try {
+      console.log("Setting loading state to true");
       setLoading(true);
       
+      // Debug API URL
+      console.log("API URL from config:", config.apiUrl);
+      console.log("Auth token in headers:", apiClient.defaults.headers.common['Authorization'] ? 'Present' : 'Not present');
+      
       // Fetch user stats
-      console.log('Fetching user stats...');
+      console.log("Fetching user stats...");
       const statsData = await runningAPI.getUserStats();
-      console.log('Stats data received:', statsData);
+      console.log("Stats data received:", statsData);
       setStats(statsData);
       
       // Fetch running records
-      console.log('Fetching running records...');
+      console.log("Fetching running records...");
       const recordsData = await runningAPI.getRunningRecords({ limit: 10 });
-      console.log('Records data received:', recordsData);
+      console.log("Records data received:", recordsData);
       setRecords(recordsData.records);
       
       // Fetch user rank
-      console.log('Fetching user rank...');
+      console.log("Fetching user rank...");
       const rankData = await leaderboardAPI.getUserRank('monthly');
-      console.log('Rank data received:', rankData);
+      console.log("Rank data received:", rankData);
       setUserRank(rankData);
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error("Error details:", error);
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
       setError('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
     } finally {
+      console.log("Setting loading state to false");
       setLoading(false);
     }
   };
