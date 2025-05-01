@@ -121,24 +121,52 @@ export const runningAPI = {
       throw error.response?.data || error;
     }
   },
-  
-  getUserStats: async () => {
-    try {
-      const response = await apiClient.get('/running/stats');
+
+  // เพิ่มใน api.js เพื่อ debug request/response
+apiClient.interceptors.request.use(request => {
+  console.log('Starting Request:', request.method, request.url);
+  return request;
+}, error => {
+  console.error('Request Error:', error);
+  return Promise.reject(error);
+});
+
+apiClient.interceptors.response.use(response => {
+  console.log('Response:', response.status, response.config.url);
+  return response;
+}, error => {
+  console.error('Response Error:', error.message);
+  if (error.response) {
+    console.error('Response Status:', error.response.status);
+    console.error('Response Data:', error.response.data);
+  } else if (error.request) {
+    console.error('No response received:', error.request);
+  }
+  return Promise.reject(error);
+});
+
+ // ปรับปรุง getUserStats ในไฟล์ services/api.js
+getUserStats: async () => {
+  try {
+    console.log('Calling getUserStats API...');
+    const response = await apiClient.get('/running/stats');
+    console.log('getUserStats response:', response.data);
+    
+    // ถ้า response.data เป็น object ที่มี data property
+    if (response.data && typeof response.data === 'object') {
+      if (response.data.data) {
+        return response.data.data;
+      }
       return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
     }
-  },
-  
-  getRunningRecord: async (recordId) => {
-    try {
-      const response = await apiClient.get(`/running/records/${recordId}`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
+    
+    throw new Error('รูปแบบข้อมูลไม่ถูกต้อง');
+  } catch (error) {
+    console.error('getUserStats error:', error);
+    throw error.response?.data || error;
+  }
+},
+
   
   updateRunningRecord: async (recordId, recordData) => {
     try {
