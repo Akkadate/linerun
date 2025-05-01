@@ -1,4 +1,4 @@
-// src/index.js - แก้ไขเพื่อเริ่มต้น LIFF ก่อนเรนเดอร์แอพ
+// src/index.js
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
@@ -7,7 +7,6 @@ import reportWebVitals from './reportWebVitals';
 import liff from '@line/liff';
 import config from './config';
 
-// เริ่มต้น LIFF ก่อนการเรนเดอร์แอพ
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 // แสดงหน้าโหลดก่อน
@@ -25,6 +24,7 @@ root.render(
 // เริ่มต้น LIFF
 const initializeLiff = async () => {
   try {
+    console.log('Initializing LIFF with ID:', config.liffId);
     await liff.init({ liffId: config.liffId });
     console.log('LIFF initialized successfully');
     
@@ -48,7 +48,4 @@ const initializeLiff = async () => {
 
 initializeLiff();
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
