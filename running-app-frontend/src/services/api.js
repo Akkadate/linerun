@@ -1,99 +1,186 @@
-// src/services/liff.js
-import { useState, useEffect } from 'react';
-import liff from '@line/liff';
+// src/services/api.js
+import axios from 'axios';
 import config from '../config';
 
-export const useLiff = () => {
-  const [liffObject, setLiffObject] = useState(null);
-  const [liffError, setLiffError] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+const API_URL = config.apiUrl;
 
-  // Initialize LIFF
-  useEffect(() => {
-    const initializeLiff = async () => {
-      try {
-        await liff.init({ liffId: config.liffId });
-        setLiffObject(liff);
-        
-        // Check if user is logged in
-        if (liff.isLoggedIn()) {
-          setIsLoggedIn(true);
-          const userProfile = await liff.getProfile();
-          setProfile(userProfile);
-        }
-      } catch (error) {
-        console.error('LIFF initialization failed', error);
-        setLiffError(error);
-      }
-    };
+// Create axios instance with base URL
+const apiClient = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-    initializeLiff();
-  }, []);
+// Add token to request headers
+export const setAuthToken = (token) => {
+  if (token) {
+    apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete apiClient.defaults.headers.common['Authorization'];
+  }
+};
 
-  // Login function
-  const login = () => {
-    if (!liffObject) return;
-    liffObject.login();
-  };
-
-  // Logout function
-  const logout = () => {
-    if (!liffObject) return;
-    liffObject.logout();
-    setIsLoggedIn(false);
-    setProfile(null);
-  };
-
-  // Get ID Token for API authentication
-  const getIdToken = () => {
-    if (!liffObject || !isLoggedIn) return null;
-    return liffObject.getIDToken();
-  };
-
-  // Get user profile
-  const getProfile = async () => {
-    if (!liffObject || !isLoggedIn) return null;
+// Auth API calls
+export const authAPI = {
+  register: async (userData) => {
     try {
-      const userProfile = await liffObject.getProfile();
-      setProfile(userProfile);
-      return userProfile;
+      const response = await apiClient.post('/auth/register', userData);
+      return response.data;
     } catch (error) {
-      console.error('Failed to get user profile', error);
-      return null;
+      throw error.response?.data || error;
     }
-  };
-
-  // Share message to LINE
-  const shareMessage = async (text) => {
-    if (!liffObject || !liffObject.isApiAvailable('shareTargetPicker')) {
-      console.error('ShareTargetPicker is not available');
-      return false;
-    }
-
+  },
+  
+  login: async (lineIdToken) => {
     try {
-      const result = await liffObject.shareTargetPicker([
-        {
-          type: 'text',
-          text: text
-        }
-      ]);
-      return result;
+      const response = await apiClient.post('/auth/login', { lineIdToken });
+      return response.data;
     } catch (error) {
-      console.error('Failed to share message', error);
-      return false;
+      throw error.response?.data || error;
     }
-  };
+  },
+  
+  getUserProfile: async () => {
+    try {
+      const response = await apiClient.get('/auth/profile');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  
+  updateUserProfile: async (profileData) => {
+    try {
+      const response = await apiClient.put('/auth/profile', profileData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  }
+};
 
-  return {
-    liffObject,
-    liffError,
-    isLoggedIn,
-    profile,
-    login,
-    logout,
-    getIdToken,
-    getProfile,
-    shareMessage
-  };
+// Running records API calls
+export const runningAPI = {
+  addRunningRecord: async (recordData) => {
+    try {
+      const response = await apiClient.post('/running/records', recordData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  
+  getRunningRecords: async (params) => {
+    try {
+      const response = await apiClient.get('/running/records', { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  
+  getUserStats: async () => {
+    try {
+      const response = await apiClient.get('/running/stats');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  
+  getRunningRecord: async (recordId) => {
+    try {
+      const response = await apiClient.get(`/running/records/${recordId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  
+  updateRunningRecord: async (recordId, recordData) => {
+    try {
+      const response = await apiClient.put(`/running/records/${recordId}`, recordData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  
+  deleteRunningRecord: async (recordId) => {
+    try {
+      const response = await apiClient.delete(`/running/records/${recordId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  }
+};
+
+// Leaderboard API calls
+export const leaderboardAPI = {
+  getDailyLeaderboard: async () => {
+    try {
+      const response = await apiClient.get('/leaderboard/daily');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  
+  getWeeklyLeaderboard: async () => {
+    try {
+      const response = await apiClient.get('/leaderboard/weekly');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  
+  getMonthlyLeaderboard: async () => {
+    try {
+      const response = await apiClient.get('/leaderboard/monthly');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  
+  getUserRank: async (period) => {
+    try {
+      const response = await apiClient.get(`/leaderboard/rank/${period}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  }
+};
+
+// Upload API calls
+export const uploadAPI = {
+  getUploadUrl: async () => {
+    try {
+      const response = await apiClient.get('/upload/url');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  
+  uploadImage: async (file, uploadUrl) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await axios.post(uploadUrl, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  }
 };
