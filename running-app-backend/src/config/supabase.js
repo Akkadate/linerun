@@ -14,4 +14,13 @@ if (!supabaseUrl || !supabaseKey) {
 // Create a single supabase client for interacting with the database
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// เพิ่มการตรวจสอบการเชื่อมต่อ Supabase ในไฟล์ src/config/supabase.js
+try {
+  // ทดสอบการเชื่อมต่อ
+  const { data, error } = await supabase.from('users').select('count(*)');
+  console.log('Supabase connection test:', data, error);
+} catch (err) {
+  console.error('Supabase connection error:', err);
+}
+
 export default supabase;
