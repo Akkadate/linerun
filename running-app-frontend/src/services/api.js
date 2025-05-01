@@ -12,11 +12,13 @@ const apiClient = axios.create({
   },
 });
 
-// Add token to request headers
+// แก้ไขฟังก์ชัน setAuthToken ในไฟล์ src/services/api.js
 export const setAuthToken = (token) => {
-  if (token) {
+  if (token && token !== 'undefined') {
+    console.log('Setting auth token in API client');
     apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
+    console.warn('Invalid token provided to setAuthToken:', token);
     delete apiClient.defaults.headers.common['Authorization'];
   }
 };
@@ -32,14 +34,37 @@ export const authAPI = {
     }
   },
   
-  login: async (lineIdToken) => {
-    try {
-      const response = await apiClient.post('/auth/login', { lineIdToken });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
+// แก้ไขฟังก์ชัน login ใน authAPI (ไฟล์ src/services/api.js)
+login: async (lineIdToken) => {
+  try {
+    // ตรวจสอบว่ามี token หรือไม่
+    if (!lineIdToken) {
+      throw new Error('LINE ID Token is missing');
     }
-  },
+    
+    console.log('Sending login request to backend');
+    const response = await apiClient.post('/auth/login', { lineIdToken });
+    
+    // ตรวจสอบ response
+    if (!response.data) {
+      console.error('Empty response from server');
+      throw new Error('ไม่ได้รับข้อมูลจากเซิร์ฟเวอร์');
+    }
+    
+    if (!response.data.token) {
+      console.error('No token in response:', response.data);
+      throw new Error('ไม่ได้รับ token จากเซิร์ฟเวอร์');
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('Login API error:', error);
+    if (error.response) {
+      console.error('Server response:', error.response.data);
+    }
+    throw error.response?.data || error;
+  }
+},
   
   getUserProfile: async () => {
     try {
