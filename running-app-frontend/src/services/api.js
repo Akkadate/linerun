@@ -34,10 +34,9 @@ export const authAPI = {
     }
   },
   
-// แก้ไขฟังก์ชัน login ใน authAPI (ไฟล์ src/services/api.js)
+// แก้ไขในไฟล์ src/services/api.js - ฟังก์ชัน login ใน authAPI
 login: async (lineIdToken) => {
   try {
-    // ตรวจสอบว่ามี token หรือไม่
     if (!lineIdToken) {
       throw new Error('LINE ID Token is missing');
     }
@@ -45,18 +44,37 @@ login: async (lineIdToken) => {
     console.log('Sending login request to backend');
     const response = await apiClient.post('/auth/login', { lineIdToken });
     
-    // ตรวจสอบ response
+    console.log('Full response from login API:', response.data);
+    
+    // ตรวจสอบโครงสร้างของ response
     if (!response.data) {
       console.error('Empty response from server');
       throw new Error('ไม่ได้รับข้อมูลจากเซิร์ฟเวอร์');
     }
     
-    if (!response.data.token) {
-      console.error('No token in response:', response.data);
-      throw new Error('ไม่ได้รับ token จากเซิร์ฟเวอร์');
+    // ถ้า token อยู่ใน response.data.data
+    if (response.data.data && response.data.data.token) {
+      console.log('Found token in response.data.data');
+      return response.data.data;
     }
     
-    return response.data;
+    // ถ้า token อยู่ใน response.data
+    if (response.data.token) {
+      console.log('Found token in response.data');
+      return response.data;
+    }
+    
+    // ถ้า user และ token อยู่ตรงๆ ใน response.data
+    if (response.data.success && response.data.data) {
+      const { user, token } = response.data.data;
+      if (user && token) {
+        console.log('Found user and token in response.data.data');
+        return { user, token };
+      }
+    }
+    
+    console.error('No token found in response structure:', response.data);
+    throw new Error('ไม่ได้รับ token จากเซิร์ฟเวอร์');
   } catch (error) {
     console.error('Login API error:', error);
     if (error.response) {
@@ -65,7 +83,6 @@ login: async (lineIdToken) => {
     throw error.response?.data || error;
   }
 },
-  
   getUserProfile: async () => {
     try {
       const response = await apiClient.get('/auth/profile');
