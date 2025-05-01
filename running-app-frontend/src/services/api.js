@@ -14,11 +14,17 @@ const apiClient = axios.create({
 
 // แก้ไขฟังก์ชัน setAuthToken ในไฟล์ src/services/api.js
 export const setAuthToken = (token) => {
+   console.log('Setting auth token:', token ? 'token exists' : 'no token');
+  
   if (token && token !== 'undefined') {
     console.log('Setting auth token in API client');
     apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    console.log('Authorization header set');
+     console.log('Current Authorization header:', apiClient.defaults.headers.common['Authorization']);
+    
   } else {
     console.warn('Invalid token provided to setAuthToken:', token);
+      console.warn('Invalid token, removing Authorization header');
     delete apiClient.defaults.headers.common['Authorization'];
   }
 };
