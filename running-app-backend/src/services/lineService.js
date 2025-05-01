@@ -3,9 +3,12 @@ import axios from 'axios';
 import jwt from 'jsonwebtoken';
 
 // Verify LINE ID token
+// เพิ่ม debug log ในฟังก์ชัน verifyIdToken
 export const verifyIdToken = async (idToken) => {
   try {
-    // Send request to LINE API to verify token
+    console.log('Verifying ID token with LINE API...');
+    console.log('LINE_CHANNEL_ID:', process.env.LINE_CHANNEL_ID);
+    
     const response = await axios.post('https://api.line.me/oauth2/v2.1/verify', null, {
       params: {
         id_token: idToken,
@@ -13,10 +16,10 @@ export const verifyIdToken = async (idToken) => {
       }
     });
     
-    // Return user info from verified token
+    console.log('LINE API response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error verifying LINE ID token:', error);
+    console.error('Error verifying LINE ID token:', error.response?.data || error.message);
     throw new Error('Token ไม่ถูกต้องหรือหมดอายุ');
   }
 };
